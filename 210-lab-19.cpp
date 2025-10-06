@@ -16,28 +16,38 @@ struct Node {
     Node* next;
 };
 
-// Adds review at head of linked list
-void addHead(Node*& head, double rating, const string& comment) {
-    Node* newNode = new Node{rating, comment, head};
-    head = newNode;
-}
+// Movie class containing title and linked list
+class Movie {
+private:
+    string title;
+    Node* head;
 
-// Displays all reviews and average rating
-void display(Node* head) {
-    cout << "\nOutputting all reviews:\n";
-    int count = 0;
-    double total = 0.0;
-    for (Node* curr = head; curr; curr = curr->next) {
-        count++;
-        total += curr->rating;
-        cout << "    > Review #" << count << ": " << fixed << setprecision(1)
-             << curr->rating << ": " << curr->comment << endl;
+public:
+    Movie(const string& t) : title(t), head(nullptr) {}
+
+    // Adds review at head of linked list
+    void addHead(double rating, const string& comment) {
+        Node* newNode = new Node{rating, comment, head};
+        head = newNode;
     }
-    if (count > 0)
-        cout << "    > Average: " << fixed << setprecision(1) << total / count << endl;
-    else
-        cout << "    > No reviews available.\n";
-}
+
+    // Displays all reviews and average rating
+    void display() const {
+        cout << "\nMovie: " << title << "\nReviews:\n";
+        int count = 0;
+        double total = 0.0;
+        for (Node* curr = head; curr; curr = curr->next) {
+            count++;
+            total += curr->rating;
+            cout << "    > Review #" << count << ": " << fixed << setprecision(1)
+                 << curr->rating << ": " << curr->comment << endl;
+        }
+        if (count > 0)
+            cout << "    > Average: " << fixed << setprecision(1) << total / count << endl;
+    }
+
+    Node*& getHead() { return head; }
+};
 
 // Generate random rating 1.0–5.0
 double randomRating() {
@@ -47,22 +57,26 @@ double randomRating() {
     return round(dis(gen) * 10) / 10.0;
 }
 
-int main() {
-    Node* head = nullptr;
-
-    // User input starts here (file-driven)
-    ifstream file("starwars_reviews.txt");
+// Reads reviews from a file into the Movie object
+void readFile(Movie& movie, const string& filename) {
+    ifstream file(filename);
     if (!file) {
-        cout << "Error: could not open file 'starwars_reviews.txt'. Please try again.\n";
-        return 1;
+        cout << "File \"" << filename << "\" not found. Please try again with a valid file.\n";
+        return;
     }
-
     string line;
     while (getline(file, line)) {
-        addHead(head, randomRating(), line);
+        movie.addHead(randomRating(), line);
     }
+}
+
+int main() {
+    Movie movie("Star Wars");
+
+    // User input starts here (file-driven)
+    readFile(movie, "starwars_reviews.txt");
     // End of user input
 
-    display(head);
+    movie.display();
     return 0;
 }
