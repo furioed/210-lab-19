@@ -1,12 +1,13 @@
 // COMSC-210 | Lab 19 | Mamadou Sissoko
 // IDE used: Visual Studio Code
-// Linked list storing movie reviews via file input and randomized ratings
+// Vector of movies, each storing a linked list of reviews with file input and randomized ratings
 
 #include <iostream>
 #include <string>
 #include <fstream>
 #include <iomanip>
 #include <random>
+#include <vector>
 using namespace std;
 
 // Node structure for review
@@ -16,38 +17,34 @@ struct Node {
     Node* next;
 };
 
-// Movie class containing title and linked list
-class Movie {
-private:
+// Movie structure holding title and head pointer
+struct Movie {
     string title;
     Node* head;
-
-public:
-    Movie(const string& t) : title(t), head(nullptr) {}
-
-    // Adds review at head of linked list
-    void addHead(double rating, const string& comment) {
-        Node* newNode = new Node{rating, comment, head};
-        head = newNode;
-    }
-
-    // Displays all reviews and average rating
-    void display() const {
-        cout << "\nMovie: " << title << "\nReviews:\n";
-        int count = 0;
-        double total = 0.0;
-        for (Node* curr = head; curr; curr = curr->next) {
-            count++;
-            total += curr->rating;
-            cout << "    > Review #" << count << ": " << fixed << setprecision(1)
-                 << curr->rating << ": " << curr->comment << endl;
-        }
-        if (count > 0)
-            cout << "    > Average: " << fixed << setprecision(1) << total / count << endl;
-    }
-
-    Node*& getHead() { return head; }
 };
+
+// Adds review at head of linked list
+void addHead(Node*& head, double rating, const string& comment) {
+    Node* newNode = new Node{rating, comment, head};
+    head = newNode;
+}
+
+// Displays all reviews and average rating
+void display(Node* head) {
+    cout << "\nOutputting all reviews:\n";
+    int count = 0;
+    double total = 0.0;
+    for (Node* curr = head; curr; curr = curr->next) {
+        count++;
+        total += curr->rating;
+        cout << "    > Review #" << count << ": " << fixed << setprecision(1)
+             << curr->rating << ": " << curr->comment << endl;
+    }
+    if (count > 0)
+        cout << "    > Average: " << fixed << setprecision(1) << total / count << endl;
+    else
+        cout << "    > No reviews available.\n";
+}
 
 // Generate random rating 1.0–5.0
 double randomRating() {
@@ -57,26 +54,40 @@ double randomRating() {
     return round(dis(gen) * 10) / 10.0;
 }
 
-// Reads reviews from a file into the Movie object
-void readFile(Movie& movie, const string& filename) {
+void loadReviews(Movie& movie, const string& filename) {
     ifstream file(filename);
     if (!file) {
-        cout << "File \"" << filename << "\" not found. Please try again with a valid file.\n";
+        cout << "Error: could not open file '" << filename << "'. Please try again.\n";
         return;
     }
+
     string line;
     while (getline(file, line)) {
-        movie.addHead(randomRating(), line);
+        addHead(movie.head, randomRating(), line);
     }
 }
 
 int main() {
-    Movie movie("Star Wars");
+    vector<Movie> movies = {
+        {"Star Wars", nullptr},
+        {"Back To The Future", nullptr},
+        {"The Avengers", nullptr},
+        {"Tron: Legacy", nullptr}
+    };
 
     // User input starts here (file-driven)
-    readFile(movie, "starwars_reviews.txt");
+    vector<string> files = {
+        "starwars_reviews.txt", "backtothefuture_reviews.txt", "avengers_reviews.txt", "tronlegacy_reviews.txt"
+    };
+
+    for (size_t i = 0; i < movies.size(); ++i)
+        loadReviews(movies[i], files[i]);
     // End of user input
 
-    movie.display();
+    for (auto& movie : movies) {
+        cout << "\nMovie: " << movie.title;
+        display(movie.head);
+    }
+
     return 0;
 }
